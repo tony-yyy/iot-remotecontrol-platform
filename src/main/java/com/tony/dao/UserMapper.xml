@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tony.dao.UserMapper">
+    <select id="getOneUser" parameterType="com.tony.domain.User" resultType="com.tony.domain.User">
+        SELECT * FROM USER WHERE username=#{username} AND PASSWORD=#{password};
+    </select>
+    <update id="updateUser" parameterType="com.tony.domain.User">
+        UPDATE
+            USER
+        SET
+            PASSWORD = #{password},
+            email = #{email},
+            realName = #{realName},
+            gender = #{gender}
+        WHERE
+            id = #{id}
+    </update>
+<!--    &#45;&#45;     username = #{username},        -->
+    <insert id="addOneUser" parameterType="com.tony.domain.User">
+        INSERT INTO USER(username, PASSWORD) VALUES (#{username}, #{password});
+    </insert>
+    <!-- room 表 -->
+    <select id="getAllRoom" parameterType="com.tony.domain.User" resultType="com.tony.domain.Room">
+        SELECT * FROM room WHERE ownerid = #{id}
+    </select>
+    <update id="updateOneRoom" parameterType="com.tony.domain.Room">
+        UPDATE room SET NAME=#{name}, `describe`=#{describe} WHERE ownerId = #{ownerId} AND id = #{id}
+    </update>
+    <insert id="addOneRoom" parameterType="com.tony.domain.Room">
+        insert into room(name, ownerId, `describe`) values(#{name},#{ownerId},#{describe})
+    </insert>
+    <delete id="deleteOneRoomById" parameterType="com.tony.domain.Room">
+        delete from room where id = #{id} and ownerId = #{ownerId}
+    </delete>
+    <!--device表-->
+    <update id="setDeviceRoomIdToNullById" parameterType="com.tony.domain.Room">
+        UPDATE device SET roomId = NULL WHERE roomId = #{id} AND ownerId = #{ownerId}
+    </update>
+</mapper>
