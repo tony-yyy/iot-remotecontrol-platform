@@ -3,7 +3,7 @@ database.properties
 jdbc.driver=com.mysql.jdbc.Driver
 jdbc.url=jdbc:mysql://127.0.0.1:3306/smarthomesystemdatabase?useSSL=false&useUnicode=true&characterEncoding=utf-8
 jdbc.username=root
-jdbc.password=qweqweqwe123
+jdbc.password=...
 
 ```
 
