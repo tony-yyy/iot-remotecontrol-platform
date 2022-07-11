@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>实时数据详情</title>
+    <script src="js/getParameter.js"></script>
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="./js/jquery-3.3.1.min.js" ></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="./bootstrap/bootstrap.min.css" >
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="./bootstrap/bootstrap.min.js" ></script>
+    <!--button-->
+    <link rel="stylesheet" type="text/css" href="css/button.css">
+    <script src="js/include.js"></script>
+    <script>
+        deviceTypeName = "";
+        id = "";
+        global_deviceName = "";
+        global_deviceSecret = "";
+        unit = "";
+        function clickSwitchButton(obj, uri){
+          obj = $(obj);
+          // alert(obj.parent().next().next().children().html())
+          // alert(uri)
+          if (obj.prop("checked") == true){
+              // 开
+              $.get(uri + "true", function () {
+                  $("#currentStateOrData").html("打开(true)")
+              });
+          } else {
+              // 关
+              $.get(uri + "false", function () {
+                  $("#currentStateOrData").html("关闭(false)")
+              });
+          }
+      }
+        function selectMultiSelectButton(obj, uri) {
+          obj = $(obj);
+          var temp = obj.val().split("(");
+          temp = temp[temp.length-1].replace(")", "");
+          temp = parseInt(temp);
+          $.get(uri+temp, function () {
+              $("#currentStateOrData").html(obj.val())
+          })
+        }
+
+        /*  获取地址栏参数，获取device信息，回显数据 */
+        function loadData(){
+            var deviceName = getParameter("deviceName");
+            var deviceSecret = getParameter("deviceSecret");
+            // 获取设备
+            $.get("/device/getOneDevice/"+deviceName+"/"+deviceSecret, function (data) {
+                if (data.flag != true)
+                    return;
+                data = data["data"];
+                console.log(data)
+                // 数据回显
+                $("#deviceTypeName").html(data.deviceTypeDescribe)// 设备类型
+                $("#deviceName").html(data.deviceName)// 设备名
+                $("#remarks").html(data.remarks)// 设备标注
+                $("#roomName").html(data.roomName)
+                deviceTypeName = data.deviceTypeName;
+                id = data.id;
+                global_deviceName = data.deviceName;
+                global_deviceSecret = data.deviceSecret;
+                if (data.deviceTypeName == "sensor"){
+                    unit = data.unit
+                    if (data.latestSensorData != null){
+                        var currentData = data.latestSensorData.samplingData + data.unit;
+                        $("#currentStateOrData").html(currentData)
+                        $("#samplingTime").html(data["latestSensorData"]["samplingTime"])
+                    }
+                }else {
+                    $("#unitForm").hide();
+                    $("#samplingTime").html(data["latestUpdateTime"])
+                    if (data.isMultiSwitch == 1){
+                        // 多状态的设备
+                        for (var i=0; i<data.multiSwitchStates.length; i++){
+                            if (data["multiSwitchStates"][i]["switchState"] == data["currentMultiSwitchState"]){
+                                $("#currentStateOrData").html(data["multiSwitchStates"][i]["describe"] + " ("+ data.currentMultiSwitchState + ")")
+                                break;
+                            }
+                        }
+                        var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/getOrSetDeviceMultiSwitchState?switchState=";
+
+                    }else {
+                        if (data.switchState){
+                            $("#currentStateOrData").html("打开 (true)")
+                        }else {
+                            $("#currentStateOrData").html("关闭 (false)")
+                        }
+                        var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/"+"getOrSetDeviceSwitchState?switchState=";
+
+                    }
+                }
+                // 显示图片
+                if (data.pic != null){
+                    $("#displayImg").prop("src", data.pic);
+                }
+                switch_html = "";
+                // 开关
+                if (data["isMultiSwitch"] == 1){
+                    // http://localhost:8511/device/light/light159/14e4c5cd489e4d7c93fac1d532a9e4d8/getOrSetDeviceMultiSwitchState?switchState=
+                    var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/getOrSetDeviceMultiSwitchState?switchState=";
+                    // 多状态设备开关
+                    switch_html = "                            <span style=\" margin-right:15px\">\n" +
+                        "                                <select onchange='selectMultiSelectButton(this, \""+ uri +"\")' style=\"color: #83c4bf; margin-top: 5px\" class=\"form-control\">\n";
+                    var opt_html = "";
+                    for (var j=0; j<data["multiSwitchStates"].length; j++){
+                        var tempState = data["multiSwitchStates"][j]["describe"] + " (" + data["multiSwitchStates"][j]["switchState"] + ")";
+                        if (data["multiSwitchStates"][j]["switchState"] == data["currentMultiSwitchState"]){
+                            opt_html += "<option selected>"+ tempState +"</option>\n";
+                        }else {
+                            opt_html += "<option>"+ tempState +"</option>\n";
+                        }
+                    }
+                    switch_html += opt_html;
+                    switch_html +=" </select>\n" +
+                        "</span>";
+                }else if (data["isMultiSwitch"] == 0 && data["deviceTypeName"]) {
+                    // 两状态开关
+                    var bid = "";
+                    bid = data["deviceName"] + data["deviceSecret"];
+                    var checkedState = "";
+                    if (data["switchState"]){
+                        checkedState = "checked";
+                    }
+                    var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/"+"getOrSetDeviceSwitchState?switchState=";
+                    switch_html = "                            <span style=\" margin-top:4px;margin-right:15px;\">\n" +
+                        "                                <input onclick='clickSwitchButton(this,\""+ uri +"\")' "+ checkedState +" class=\"tgl tgl-ios\" id=\""+ bid +"\" type=\"checkbox\"/>\n" +
+                        "                                <label class=\"tgl-btn\" for=\""+ bid +"\"></label>\n" +
+                        "                            </span>";
+                }
+                if (data.deviceTypeName != "sensor"){
+                    $("#switch").html(switch_html)
+                }
+                if (data.deviceTypeName == "camera"){
+                    $("#cameraDisplayArea").show();
+                    var src = "/device/camera/" + deviceName +"/"+deviceSecret+"/"+"getVideoStream?time="+Date.now();
+                    $("#cameraStreamDisplay").attr("src", src);
+                }
+                // var uri = "deviceDataDetail.html?deviceName="+data["deviceName"]+"&deviceSecret="+data["deviceSecret"];
+                var uri = "deviceDetail.html?deviceName="+data["deviceName"]+"&deviceSecret="+data["deviceSecret"];
+                $("#deivceDetailUri").attr("href", uri)
+                uri = "deviceEvent.html?deviceName="+data["deviceName"]+"&deviceSecret="+data["deviceSecret"];
+                $("#deviceEventUri").attr("href", uri)
+            })
+        }
+
+        function flashData() {
+            var deviceName = getParameter("deviceName");
+            var deviceSecret = getParameter("deviceSecret");
+            // 获取设备
+            $.get("/device/getOneDevice/"+deviceName+"/"+deviceSecret, function (data) {
+                if (data.flag != true)
+                    return;
+                data = data["data"];
+                console.log(data)
+                // 数据回显
+                $("#deviceTypeName").html(data.deviceTypeDescribe)// 设备类型
+                $("#deviceName").html(data.deviceName)// 设备名
+                $("#remarks").html(data.remarks)// 设备标注
+                $("#roomName").html(data.roomName)
+                deviceTypeName = data.deviceTypeName;
+                id = data.id;
+                global_deviceName = data.deviceName;
+                global_deviceSecret = data.deviceSecret;
+                if (data.deviceTypeName == "sensor"){
+                    unit = data.unit
+                    if (data.latestSensorData != null){
+                        var currentData = data.latestSensorData.samplingData + data.unit;
+                        $("#currentStateOrData").html(currentData)
+                        $("#samplingTime").html(data["latestSensorData"]["samplingTime"])
+                    }
+                }else {
+                    $("#unitForm").hide();
+                    $("#samplingTime").html(data["latestUpdateTime"])
+                    if (data.isMultiSwitch == 1){
+                        // 多状态的设备
+                        for (var i=0; i<data.multiSwitchStates.length; i++){
+                            if (data["multiSwitchStates"][i]["switchState"] == data["currentMultiSwitchState"]){
+                                $("#currentStateOrData").html(data["multiSwitchStates"][i]["describe"] + " ("+ data.currentMultiSwitchState + ")")
+                                break;
+                            }
+                        }
+                        var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/getOrSetDeviceMultiSwitchState?switchState=";
+
+                    }else {
+                        if (data.switchState){
+                            $("#currentStateOrData").html("打开 (true)")
+                        }else {
+                            $("#currentStateOrData").html("关闭 (false)")
+                        }
+                        var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/"+"getOrSetDeviceSwitchState?switchState=";
+
+                    }
+                }
+                switch_html = "";
+                var isFlashSwitch = true;
+                // 当前数值如果和开关上的数值一样，不回显开关
+                if (data["isMultiSwitch"] == 1){
+                    // http://localhost:8511/device/light/light159/14e4c5cd489e4d7c93fac1d532a9e4d8/getOrSetDeviceMultiSwitchState?switchState=
+                    var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/getOrSetDeviceMultiSwitchState?switchState=";
+                    // 多状态设备开关
+                    switch_html = "                            <span style=\" margin-right:15px\">\n" +
+                        "                                <select onchange='selectMultiSelectButton(this, \""+ uri +"\")' style=\"color: #83c4bf; margin-top: 5px\" class=\"form-control\">\n";
+                    var opt_html = "";
+                    for (var j=0; j<data["multiSwitchStates"].length; j++){
+                        var tempState = data["multiSwitchStates"][j]["describe"] + " (" + data["multiSwitchStates"][j]["switchState"] + ")";
+                        if (data["multiSwitchStates"][j]["switchState"] == data["currentMultiSwitchState"]){
+                            opt_html += "<option selected>"+ tempState +"</option>\n";
+                            if (tempState == $("#switch").find("select").val()){
+                                isFlashSwitch = false
+                            }
+                        }else {
+                            opt_html += "<option>"+ tempState +"</option>\n";
+                        }
+                    }
+                    switch_html += opt_html;
+                    switch_html +=" </select>\n" +
+                        "</span>";
+                }else if (data["isMultiSwitch"] == 0 && data["deviceTypeName"]) {
+                    // 两状态开关
+                    var bid = "";
+                    bid = data["deviceName"] + data["deviceSecret"];
+                    var checkedState = "";
+                    if (data["switchState"]){
+                        checkedState = "checked";
+                    }
+                    var uri = "/device/"+data["deviceTypeName"]+"/"+data["deviceName"]+"/"+data["deviceSecret"]+"/"+"getOrSetDeviceSwitchState?switchState=";
+                    switch_html = "                            <span style=\" margin-top:4px;margin-right:15px;\">\n" +
+                        "                                <input onclick='clickSwitchButton(this,\""+ uri +"\")' "+ checkedState +" class=\"tgl tgl-ios\" id=\""+ bid +"\" type=\"checkbox\"/>\n" +
+                        "                                <label class=\"tgl-btn\" for=\""+ bid +"\"></label>\n" +
+                        "                            </span>";
+                }
+                if (data.deviceTypeName != "sensor" && isFlashSwitch == true){
+                    $("#switch").html(switch_html)
+                }
+
+                if (data.deviceTypeName == "camera"){
+                    $("#cameraDisplayArea").show();
+                    var src = "/device/camera/" + deviceName +"/"+deviceSecret+"/"+"getVideoStream?time="+Date.now();
+                    $("#cameraStreamDisplay").attr("src", src);
+                }
+            })
+        }
+
+        function drawChart(data) {
+            /*1.绘制网格  网格大小 10px 网格的颜色 #ddd */
+
+            /*2.绘制坐标  轴的离边距离  20px 箭头的尺寸 10px */
+            /*3.绘制点 点尺寸 6px */
+            /*4.连接点 */
+            /*5.准备数据*/
+            /*使用面向对象的方式实现*/
+            var LineChart = function (ctx) {
+                //绘制工具
+                this.ctx = ctx || document.querySelector('canvas').getContext('2d');
+                //网格大小
+                this.gridSize = 10;
+                //网格线的颜色
+                this.gridColor = '#fff';
+                //轴的离边距离
+                this.space = 60;
+                //箭头的尺寸
+                this.arrowSize = 10;
+                //点尺寸
+                this.pointSize = 0;
+
+                //画布的高度
+                this.canvasHeight = this.ctx.canvas.height;
+                //画布的宽度
+                this.canvasWidth = this.ctx.canvas.width;
+
+                //入口函数
+                //this.init();
+            }
+            //入口函数
+            LineChart.prototype.init = function (data) {
+                this.drawGrid();
+                this.drawXY();
+                this.drawPointList(data);
+                this.joinPoint();
+            };
+            //绘制网格
+            LineChart.prototype.drawGrid = function () {
+                /*业务*/
+                /*1. 绘制X轴方向的线*/
+                var xCount = Math.floor(this.canvasHeight / this.gridSize);
+                for (var i = 0; i < xCount; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i * this.gridSize - 0.5);
+                    this.ctx.lineTo(this.canvasWidth, i * this.gridSize - 0.5);
+                    this.ctx.strokeStyle = this.gridColor;
+                    this.ctx.stroke();
+                }
+
+                /*2. 绘制Y轴方向的线*/
+                var yCount = Math.floor(this.canvasWidth / this.gridSize);
+                for (var i = 0; i < yCount; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i * this.gridSize - 0.5, 0);
+                    this.ctx.lineTo(i * this.gridSize - 0.5, this.canvasHeight);
+                    this.ctx.strokeStyle = this.gridColor;
+                    this.ctx.stroke();
+                }
+            }
+            //绘制原点和坐标轴
+            LineChart.prototype.drawXY = function () {
+                /*1.坐标原点*/
+                this.x0 = this.space;
+                this.y0 = this.canvasHeight - this.space;
+                /*2.绘制X轴*/
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.x0, this.y0);
+                this.ctx.lineTo(this.canvasWidth - this.space, this.y0);
+                this.ctx.lineTo(this.canvasWidth - this.space - this.arrowSize, this.y0 + this.arrowSize / 2);
+                this.ctx.lineTo(this.canvasWidth - this.space - this.arrowSize, this.y0 - this.arrowSize / 2);
+                this.ctx.lineTo(this.canvasWidth - this.space, this.y0);
+                this.ctx.font = 50 + 'px Arial';
+                this.ctx.fillText("time", this.canvasWidth - this.space-35, this.y0+60)
+                this.ctx.strokeStyle = '#000';
+                this.ctx.stroke();
+                this.ctx.fill();
+                /*3.绘制Y轴*/
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.x0, this.y0);
+                this.ctx.lineTo(this.space, this.space);
+                this.ctx.lineTo(this.space + this.arrowSize / 2, this.space + this.arrowSize);
+                this.ctx.lineTo(this.space - this.arrowSize / 2, this.space + this.arrowSize);
+                this.ctx.lineTo(this.space, this.space);
+                this.ctx.font = 50 + 'px Arial';
+                this.ctx.fillText(unit, this.space - this.arrowSize / 2 - 55, this.space + this.arrowSize - 20)
+                this.ctx.stroke();
+                this.ctx.fill();
+            }
+            //绘制所有点
+            LineChart.prototype.drawPointList = function (data) {
+                //测试
+                //this.drawPoint(200,200);
+                var _this = this;
+                //原来的点
+                var oldPoint = {
+                    x: this.x0,
+                    y: this.y0
+                };
+                data.forEach(function (item, i) {
+                    console.log(item)
+                    /*绘制小正方形 就是点*/
+                    /*在绘制之前转成cnavas坐标*/
+                    var x = _this.x0 + item.x;
+                    var y = _this.y0 - item.y;
+                    _this.drawPoint(x, y, item["sensorData"]);
+                    _this.joinPoint(oldPoint, {
+                        x: x,
+                        y: y
+                    });
+
+                    //连线完毕之后去记录  把这一次的点当做下一次连线的起始点
+                    oldPoint = {
+                        x: x,
+                        y: y
+                    }
+                });
+            }
+            LineChart.prototype.drawPoint = function (x, y, sensorData) {
+                this.ctx.moveTo(x - this.pointSize / 2, y - this.pointSize / 2);
+                this.ctx.lineTo(x + this.pointSize / 2, y - this.pointSize / 2);
+                this.ctx.lineTo(x + this.pointSize / 2, y + this.pointSize / 2);
+                this.ctx.lineTo(x - this.pointSize / 2, y + this.pointSize / 2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.font = 50 + 'px Arial';
+                if (sensorData != null){
+                    var time = sensorData.samplingTime.split(" ")[1].split(":");
+                    time.splice(2,1);
+                    time = time.join(":")
+                    this.ctx.fillText(time, x, 500)
+                    this.ctx.fillText(Math.round(parseFloat(sensorData.samplingData)*100)/100, x, y+50)
+                    pointSize = 10;
+                    this.ctx.moveTo(x - pointSize / 2, y - pointSize / 2);
+                    this.ctx.lineTo(x + pointSize / 2, y - pointSize / 2);
+                    this.ctx.lineTo(x + pointSize / 2, y + pointSize / 2);
+                    this.ctx.lineTo(x - pointSize / 2, y + pointSize / 2);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                }
+
+
+            };
+            //连接点
+            LineChart.prototype.joinPoint = function (oldPoint, currPoint) {
+                /*上一个点的坐标和现在的坐标相连*/
+                //oldPoint {x,y}
+                //currPoint {x,y}
+                this.ctx.beginPath();
+                if (typeof(oldPoint)  == "undefined")
+                    return
+                this.ctx.moveTo(oldPoint.x, oldPoint.y);
+                this.ctx.lineTo(currPoint.x, currPoint.y);
+                this.ctx.stroke();
+            };
+            //使用
+            var lineChart = new LineChart();
+            lineChart.init(data);
+        }
+
+        function loadChart(){
+            if (deviceTypeName != "sensor")
+                return
+            $.get("/device/getSensorDataDetail/"+global_deviceName+"/"+global_deviceSecret, function (data) {
+                if (!data.flag)
+                    return;
+                data = data["data"];
+                console.log(data)
+                if (data.length == 0)
+                    return;
+                chartData = [];
+                // 将时间转换成x
+                // 将数据转换成y
+                // 平分 x 轴
+                var perX = 1200 / data.length; // 每次加 px 份
+                // 获取 数据最大值
+                // if ()
+                var maxData = data[0]["samplingData"];
+                for (var i=0; i<data.length; i++){
+                    if (maxData < data[i]["samplingData"]){
+                        maxData = data[i]["samplingData"];
+                    }
+                }
+                var xishuY = 300 / maxData // y轴，需要乘的系数
+                var commentTimes = parseInt(data.length / 5); //  显示5条注释
+                var sensorData = null;
+                for (var i=0; i<data.length; i++){
+                    if (i % commentTimes == 0){
+                        sensorData = data[i];
+                    }else {
+                        sensorData = null;
+                    }
+                    chartData.push(
+                        {
+                            x: i * perX,
+                            y: data[i]["samplingData"] * xishuY,
+                            sensorData: sensorData
+                        }
+                    )
+                }
+                console.log(chartData)
+                drawChart(chartData)
+            })
+        }
+
+        $(function () {
+            $("#cameraDisplayArea").hide();
+            loadData();
+            setInterval(flashData, 3000);
+            var judage = function(){
+                if(global_deviceName!="" || global_deviceSecret!=""){
+                    //做你想做的的事
+                    loadChart();
+                }
+                else
+                    setTimeout(judage, 500)
+            }
+            judage();
+        })
+
+    </script>
+</head>
+<body>
+<div id="header"></div>
+<div class="container">
+    <ul class="nav nav-tabs" style="margin-bottom: 40px">
+        <li role="presentation" class="active"><a href="#">实时数据详情</a></li>
+        <li role="presentation"><a id="deivceDetailUri" href="">设备详情</a></li>
+        <li role="presentation"><a id="deviceEventUri" href="#">设备触发事件/模式</a></li>
+    </ul>
+    <div class="row">
+            <div class="col-md-5">
+                <div class="form-group" style="text-align: center">
+                    <img id="displayImg" style="width: 400px" class="img-thumbnail" src="">
+                </div>
+            </div>
+            <div class="col-md-7">
+                <table class="table">
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            设备类型
+                        </td>
+                        <td>
+                            <span id="deviceTypeName" name="deviceTypeName"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            设备名
+                        </td>
+                        <td>
+                            <span id="deviceName" name="deviceName"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            备注
+                        </td>
+                        <td>
+                            <span id="remarks" name="remarks"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            所属房间
+                        </td>
+                        <td>
+                            <span name="roomName" id="roomName"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            当前状态/数据
+                        </td>
+                        <td>
+                            <span id="currentStateOrData" name="currentStateOrData"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: 700">
+                            采样时间
+                        </td>
+                        <td>
+                            <span id="samplingTime" name="currentStateOrData"></span>
+                        </td>
+                    </tr>
+                   <!-- <tr>
+                        <td colspan="2">
+                            <a id="deivceDetailUri" href="" style="font-weight:700;font-size: 18px">设备信息详情/修改</a>
+                        </td>
+                    </tr>-->
+                </table>
+
+            </div>
+</div>
+    <div class="row">
+        <div id="switch" style="margin-left: 20px; width: 150px" class="col-md-4" ></div>
+    </div>
+    <div class="row" style="text-align: center" id="cameraDisplayArea">
+        <img class="img-thumbnail" id="cameraStreamDisplay" alt="there is no video stream received.">
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <canvas width="1500px" height="500px" id="canvas" style="width: 100%; "></canvas>
+        </div>
+    </div>
+</div>
+<div id="footer"></div>
+</body>
+</html>
