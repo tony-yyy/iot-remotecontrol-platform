@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>首页</title>
+    <!--button-->
+    <link rel="stylesheet" type="text/css" href="css/button.css">
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="./js/jquery-3.3.1.min.js" ></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="./bootstrap/bootstrap.min.css" >
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="./bootstrap/bootstrap.min.js" ></script>
+    <script src="js/include.js"></script>
+    <script>
+        myInterval  = "";
+        function clickSwitchButton(obj, uri){
+            obj = $(obj);
+            // alert(obj.parent().next().next().children().html())
+            // alert(uri)
+            if (obj.prop("checked") == true){
+                // 开
+                $.get(uri + "true", function () {
+                    // obj.parent().next().next().children().html("打开");
+                    obj.parents("div[name=items]").find("b[name=currentStateText]").html("打开")
+                });
+            } else {
+                // 关
+                $.get(uri + "false", function () {
+                    // obj.parent().next().next().children().html("关闭");
+                    obj.parents("div[name=items]").find("b[name=currentStateText]").html("关闭")
+
+                });
+            }
+            // loadPage();
+        }
+        function selectMultiSelectButton(obj, uri) {
+            obj = $(obj);
+            var temp = obj.val().split("(");
+            temp = temp[temp.length-1].replace(")", "");
+            temp = parseInt(temp);
+            $.get(uri+temp, function () {
+                obj.parents("div[name=items]").find("b[name=currentStateText]").html(obj.val())
+                // obj.parent().next().next().children().html(obj.val());
+            })
+        }
+        function loadTab(page, rows, roomName, deviceTypeName, keyword) {
+            $.get("/user/getAllRoom", function (data) {
+                data = data["data"];
+                var active_html = "class=\"active\"";
+                var html = "";
+                if (roomName == "全部")
+                    html = "<li role=\"presentation\" "+ active_html +"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+"全部"+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\"><svg t=\"1643774805554\" class=\"icon\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" p-id=\"5227\" width=\"20\" height=\"20\"><path d=\"M452 837.03125H249.6875c-34.6875 0-62.90625-28.21875-62.90625-62.90625V391.8125c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v382.3125c0 6.75 5.53125 12.28125 12.28125 12.28125H452c13.96875 0 25.3125 11.34375 25.3125 25.3125s-11.34375 25.3125-25.3125 25.3125zM812.1875 537.125c-13.96875 0-25.3125-11.34375-25.3125-25.3125V397.625c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v114.1875c0 13.96875-11.34375 25.3125-25.3125 25.3125zM774.5 837.03125H572.09375c-13.96875 0-25.3125-11.34375-25.3125-25.3125s11.34375-25.3125 25.3125-25.3125H774.5c6.75 0 12.28125-5.53125 12.28125-12.28125v-82.21875c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v82.21875c0.09375 34.6875-28.125 62.90625-62.90625 62.90625z\" p-id=\"5228\"></path><path d=\"M110.75 497c-7.40625 0-14.8125-3.28125-19.78125-9.5625-8.71875-10.96875-6.9375-26.8125 4.03125-35.53125l369.75-294.9375c13.21875-10.5 29.71875-16.3125 46.59375-16.3125h0.09375c16.875 0 33.46875 5.8125 46.6875 16.40625L902 432.5c10.875 8.71875 12.65625 24.65625 3.9375 35.625-8.71875 10.875-24.65625 12.65625-35.625 3.9375L526.34375 196.53125c-8.8125-7.125-21.1875-7.125-30.09375 0L126.5 491.46875c-4.59375 3.75-10.21875 5.53125-15.75 5.53125zM572.09375 837.03125c-1.5 0-2.90625-0.09375-4.3125-0.375-1.40625 0.28125-2.8125 0.375-4.3125 0.375H452c-13.96875 0-25.3125-11.34375-25.3125-25.3125V632.09375c0-47.0625 38.34375-85.40625 85.40625-85.40625 22.78125 0 44.25 8.90625 60.375 25.03125 16.125 16.125 25.03125 37.59375 25.03125 60.375v179.625c-0.09375 13.96875-11.4375 25.3125-25.40625 25.3125z m-94.78125-50.625h69.5625V632.09375c0-9.28125-3.65625-18-10.21875-24.5625S521.375 597.3125 512.09375 597.3125c-19.125 0-34.78125 15.5625-34.78125 34.78125v154.3125z\" p-id=\"5229\"></path></svg></a></li>";
+                else
+                    html = "<li role=\"presentation\"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+"全部"+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\"><svg t=\"1643774805554\" class=\"icon\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" p-id=\"5227\" width=\"20\" height=\"20\"><path d=\"M452 837.03125H249.6875c-34.6875 0-62.90625-28.21875-62.90625-62.90625V391.8125c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v382.3125c0 6.75 5.53125 12.28125 12.28125 12.28125H452c13.96875 0 25.3125 11.34375 25.3125 25.3125s-11.34375 25.3125-25.3125 25.3125zM812.1875 537.125c-13.96875 0-25.3125-11.34375-25.3125-25.3125V397.625c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v114.1875c0 13.96875-11.34375 25.3125-25.3125 25.3125zM774.5 837.03125H572.09375c-13.96875 0-25.3125-11.34375-25.3125-25.3125s11.34375-25.3125 25.3125-25.3125H774.5c6.75 0 12.28125-5.53125 12.28125-12.28125v-82.21875c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v82.21875c0.09375 34.6875-28.125 62.90625-62.90625 62.90625z\" p-id=\"5228\"></path><path d=\"M110.75 497c-7.40625 0-14.8125-3.28125-19.78125-9.5625-8.71875-10.96875-6.9375-26.8125 4.03125-35.53125l369.75-294.9375c13.21875-10.5 29.71875-16.3125 46.59375-16.3125h0.09375c16.875 0 33.46875 5.8125 46.6875 16.40625L902 432.5c10.875 8.71875 12.65625 24.65625 3.9375 35.625-8.71875 10.875-24.65625 12.65625-35.625 3.9375L526.34375 196.53125c-8.8125-7.125-21.1875-7.125-30.09375 0L126.5 491.46875c-4.59375 3.75-10.21875 5.53125-15.75 5.53125zM572.09375 837.03125c-1.5 0-2.90625-0.09375-4.3125-0.375-1.40625 0.28125-2.8125 0.375-4.3125 0.375H452c-13.96875 0-25.3125-11.34375-25.3125-25.3125V632.09375c0-47.0625 38.34375-85.40625 85.40625-85.40625 22.78125 0 44.25 8.90625 60.375 25.03125 16.125 16.125 25.03125 37.59375 25.03125 60.375v179.625c-0.09375 13.96875-11.4375 25.3125-25.40625 25.3125z m-94.78125-50.625h69.5625V632.09375c0-9.28125-3.65625-18-10.21875-24.5625S521.375 597.3125 512.09375 597.3125c-19.125 0-34.78125 15.5625-34.78125 34.78125v154.3125z\" p-id=\"5229\"></path></svg></a></li>";
+                // console.log(data)
+                for (var i=0; i<data.length; i++){
+                    if (roomName == data[i]["name"]){
+                        html += "<li role=\"presentation\" "+ active_html +"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+data[i]["name"]+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\">"+ data[i]["name"] +"</a></li>";
+                    }else {
+                        html += "<li role=\"presentation\"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+data[i]["name"]+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\">"+ data[i]["name"] +"</a></li>";
+                    }
+                }
+                $("#navTab").html(html);
+            })
+        }
+        function loadTypeTab(page, rows, roomName, deviceTypeName, keyword) {
+            // 获取所有设备类型
+            $.get("/device/getAllDeviceType", function (data) {
+                if (data["flag"]){
+                    data = data["data"]
+                    var html = "";
+                    if (deviceTypeName == "全部")
+                        html += "<li role=\"presentation\" class='active'><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+roomName+"\'"+","+"\'"+"全部"+"\'"+","+keyword +")\">全部</a></li>"
+                    else
+                        html += "<li role=\"presentation\"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+roomName+"\'"+","+"\'"+"全部"+"\'"+","+keyword +")\">全部</a></li>"
+                    for (var i=0; i<data.length; i++){
+                        if (data[i]["typeName"] == deviceTypeName){
+                            html += "<li role=\"presentation\" class='active'><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+roomName+"\'"+","+"\'"+data[i]["typeName"]+"\'"+","+keyword +")\">"+ data[i]["describe"] +"</a></li>"
+                        }else {
+                            html += "<li role=\"presentation\"><a href=\"javascript: loadPage("+ 1+","+rows+","+"\'"+roomName+"\'"+","+"\'"+data[i]["typeName"]+"\'"+","+keyword +")\">"+ data[i]["describe"] +"</a></li>"
+                        }
+                    }
+                    $("#typeSelectTab").html(html);
+                }
+            })
+        }
+        function loadPageNavigation(data, page, rows, roomName, deviceTypeName, keyword) {
+            // "+ page+","+rows+","+"\'"+"全部"+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +"
+            pagination = "";
+            if (data.currentPage == 1){
+                paginationLeft = "                <li class=\"disabled\">\n" +
+                    "                    <a  aria-label=\"Previous\">\n" +
+                    "                        <span aria-hidden=\"true\">&laquo;</span>\n" +
+                    "                    </a>\n" +
+                    "                </li>";
+            }else {
+                paginationLeft = "                <li>\n" +
+                    "                    <a href=\"javascript: loadPage("+ (page-1)+","+rows+","+"\'"+roomName+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\" aria-label=\"Previous\">\n" +
+                    "                        <span aria-hidden=\"true\">&laquo;</span>\n" +
+                    "                    </a>\n" +
+                    "                </li>";
+            }
+
+            paginationNumber = "";
+
+
+            for (var i=data.currentPage-3; i<data.currentPage+7; i++){
+                if (i<0 || i>data.totalPage-1){
+                    continue;
+                }
+                if (i+1 == data.currentPage){
+                    paginationNumber += "                <li class=\"active\"}\">\n" +
+                        "                    <a href=\"javascript: loadPage("+ (i+1)+","+rows+","+"\'"+roomName+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\">"+ (i+1) +"</a>\n" +
+                        "                </li>"
+                }else
+                    paginationNumber += "                <li>\n" +
+                        "                    <a href=\"javascript: loadPage("+ (i+1)+","+rows+","+"\'"+roomName+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\">"+ (i+1) +"</a>\n" +
+                        // "                    <a href=\"javascript: loadPage("+ (i+1) +","+ data.pageSize +",\'"+ type +"\',\'"+ keyword +"\')\">"+ (i+1) +"</a>\n" +
+                        "                </li>"
+            }
+
+            if (data.currentPage == data.totalPage){
+                paginationRight = "                <li class=\"disabled\">\n" +
+                    "                    <a aria-label=\"Next\">\n" +
+                    "                        <span aria-hidden=\"true\">&raquo;</span>\n" +
+                    "                    </a>\n" +
+                    "                </li>"
+            }else {
+                paginationRight = "                <li>\n" +
+                    "                    <a href=\"javascript: loadPage("+ (page+1)+","+rows+","+"\'"+roomName+"\'"+","+"\'"+deviceTypeName+"\'"+","+keyword +")\" aria-label=\"Next\">\n" +
+                    "                        <span aria-hidden=\"true\">&raquo;</span>\n" +
+                    "                    </a>\n" +
+                    "                </li>"
+            }
+
+            paginationDetail = "<li><a>第"+ data.currentPage +"页，共"+ data.totalPage +"页</a></li>"
+            pagination = paginationLeft + paginationNumber + paginationRight + paginationDetail;
+            $("#pagination").html(pagination);
+
+        }
+        function pageSkip() {
+            loadPage($("#textSkipPage").val(), 10, "全部", "全部", "null");
+        }
+        function loadData(page, rows, roomName, deviceTypeName, keyword) {
+    // 获取 device 数据
+            $("#remindInfo").css("display", "block")
+            $("#loadingInfo").show()
+            $("#noDeviceInfo").hide()
+            $("#items").html("");
+            $("#pagination").html("");
+            $("#formSkipPage").hide();
+            $.get("/device/getDeviceByPage/"+page+"/"+rows+"/"+roomName+"/"+deviceTypeName+"/"+keyword+"",function (data) {
+                if (!data.flag)
+                    return
+                data = data["data"];
+                console.log(data);
+                var html = "";
+                // 遍历 data.list
+                for (var i=0; i<data.list.length; i++){
+                    // 设备当前状态
+                    var currentState = "";
+                    if (data["list"][i]["deviceTypeName"] == "sensor"){
+                        // 如果为传感器
+                        // alert(data["list"][i]["deviceTypeName"])
+                        if (data["list"][i]["latestSensorData"] == null){
+                            currentState = "无数据";
+                        }else {
+                            var samplingData = data["list"][i]["latestSensorData"]["samplingData"];
+                            currentState =  samplingData + data["list"][i]["unit"]// 拼接单位
+                        }
+                    } else {
+                        // 判断是否为多状态设备
+                        if (data["list"][i]["isMultiSwitch"] == 1){
+                            for (var j=0; j<data["list"][i]["multiSwitchStates"].length; j++){
+                                if (data["list"][i]["multiSwitchStates"][j]["switchState"] == data["list"][i]["currentMultiSwitchState"]){
+                                    currentState = data["list"][i]["multiSwitchStates"][j]["describe"] + " (" + data["list"][i]["multiSwitchStates"][j]["switchState"] + ")";
+                                    break;
+                                }
+                            }
+                        }else {
+                            if (data["list"][i]["switchState"]){
+                                currentState = "打开";
+                            }else {
+                                currentState = "关闭";
+                            }
+
+                        }
+                    }
+                    // 开关：不同的设备类型不同的开关
+                    var switch_html = "";
+                    if (data["list"][i]["deviceTypeName"] != "sensor"){
+                        // 不为传感器
+                        if (data["list"][i]["isMultiSwitch"] == 1){
+                            http://localhost:8511/device/light/light159/14e4c5cd489e4d7c93fac1d532a9e4d8/getOrSetDeviceMultiSwitchState?switchState=
+                                var uri = "/device/"+data["list"][i]["deviceTypeName"]+"/"+data["list"][i]["deviceName"]+"/"+data["list"][i]["deviceSecret"]+"/getOrSetDeviceMultiSwitchState?switchState=";
+                            // 多状态设备开关
+                            switch_html = "                            <span style=\"float: right; margin-right:15px\">\n" +
+                                "                                <select onchange='selectMultiSelectButton(this, \""+ uri +"\")' style=\"width:90px;color: #83c4bf; margin-top: 5px\" class=\"form-control\">\n";
+                            var opt_html = "";
+                            for (var j=0; j<data["list"][i]["multiSwitchStates"].length; j++){
+                                var tempState = data["list"][i]["multiSwitchStates"][j]["describe"] + " (" + data["list"][i]["multiSwitchStates"][j]["switchState"] + ")";
+                                if (data["list"][i]["multiSwitchStates"][j]["switchState"] == data["list"][i]["currentMultiSwitchState"]){
+                                    opt_html += "<option selected>"+ tempState +"</option>\n";
+                                }else {
+                                    opt_html += "<option>"+ tempState +"</option>\n";
+                                }
+                            }
+                            switch_html += opt_html;
+                            switch_html +=" </select>\n" +
+                                "</span>";
+                        }else {
+                            // 两状态开关
+                            var bid = "";
+                            bid = data["list"][i]["deviceName"] + data["list"][i]["deviceSecret"];
+                            var checkedState = "";
+                            if (data["list"][i]["switchState"]){
+                                checkedState = "checked";
+                            }
+                            var uri = "/device/"+data["list"][i]["deviceTypeName"]+"/"+data["list"][i]["deviceName"]+"/"+data["list"][i]["deviceSecret"]+"/"+"getOrSetDeviceSwitchState?switchState=";
+                            switch_html = "                            <span style=\"float: right; margin-top:4px;margin-right:15px;\">\n" +
+                                "                                <input onclick='clickSwitchButton(this,\""+ uri +"\")' "+ checkedState +" class=\"tgl tgl-ios\" id=\""+ bid +"\" type=\"checkbox\"/>\n" +
+                                "                                <label class=\"tgl-btn\" for=\""+ bid +"\"></label>\n" +
+                                "                            </span>";
+                        }
+                    }
+                    var latestUpdateTime = "";
+                    if (data["list"][i]["deviceTypeName"] == "sensor"){
+                        if (data["list"][i]["latestSensorData"] == null){
+                            latestUpdateTime = "";
+                        }else {
+                            latestUpdateTime = data["list"][i]["latestSensorData"]["samplingTime"];
+                        }
+                    }else {
+                        latestUpdateTime = data["list"][i]["latestUpdateTime"];
+                    }
+                    deviceDetailUri = "deviceDetail.html?deviceName="+data["list"][i]["deviceName"]+"&deviceSecret="+data["list"][i]["deviceSecret"];
+                    deviceDataDetailUri = "deviceDataDetail.html?deviceName="+data["list"][i]["deviceName"]+"&deviceSecret="+data["list"][i]["deviceSecret"];
+                    deviceEventUri = "deviceEvent.html?deviceName="+data["list"][i]["deviceName"]+"&deviceSecret="+data["list"][i]["deviceSecret"];
+                    html += "<div name='items' style='padding: 8px' class=\"col-xs-6 col-sm-4 col-md-3 col-lg-3\" >\n" +
+                        "          <div style=';box-shadow: 5px 5px 5px rgba(0,0,0,.3)'>   " +
+                        "                <div class=\"thumbnail\" style=\"padding: 0px;position:relative\">\n" +
+                        "                    <!--                      视频缩略图-->\n" +
+                        "                    <div onclick='location.href = \""+ deviceDataDetailUri +"\"' class=\"displayImg\" style=\"background: url(\'"+ data["list"][i]["pic"]+"\') no-repeat center;\n" +
+                        "                                        background-size: cover; height: 125px;\">" +
+                        "                           <div style='float: left;height: 45px; width: 100%;  background-color: black;margin-top:80px;opacity:0;padding: 5px;'></div>" +
+
+                        "                    </div>\n" +
+                        "                           <span style='overflow: hidden;float: right;margin-left: 0px;opacity:1'>"+ switch_html +"</span>" +
+                        "                    <div class=\"caption\" style='padding-right: 0px'>\n" +
+                        "                        <p style=\"text-align: left;height:56px;margin-bottom:0px;overflow: hidden\">\n" +
+                        "                            "+ data["list"][i]["remarks"] +" ("+ data["list"][i]["deviceName"] +")\n" +
+                        // switch_html +
+                        "                            <br>\n" +
+                        "                            <span style=\"color: #acc277\">当前状态：<b name='currentStateText'>"+ currentState +"</b></span>\n" +
+                        "                        </p>\n" +
+                        "                        <div style=\"margin:0px;height: 35px\" class='row'>\n" +
+                        "                            <span class='' style=\"margin:0px;text-align:left;margin-top:0px;font-size: 12px;color: #a0a0a0\">\n" +
+                        "                                <img width=\"15px\" src=\"icon/房间.png\">\n" +
+                        "                                "+ (data["list"][i]["roomId"]!=0?data["list"][i]["roomName"]:"无房间") +" | "+ data["list"][i]["deviceTypeDescribe"] +" | "+ latestUpdateTime +"\n" +
+                        "                            </span>\n" +
+                        "                            <!-- 下拉菜单 -->\n" +
+                        "                            <span class=\"btn-group\" style=\"float: right; \">\n" +
+                        "                                    <a style='width: 40px;margin-left:30px;' type=\"button\"  class=\"btn  dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n" +
+                        "                                        <img style='' width=\"15px\"  src=\"icon/菜单.png?id=1\">\n" +
+                        "                                    </a>\n" +
+                        "                                    <ul class=\"dropdown-menu\">\n" +
+                        "                                        <li><a href=\""+ deviceDetailUri +"\">设备详情</a></li>\n" +
+                        "                                        <li><a href=\""+ deviceDataDetailUri +"\">数据详情</a></li>\n" +
+                        "                                        <li><a href=\""+ deviceEventUri +"\">添加触发事件</a></li>\n" +
+                        "                                    </ul>\n" +
+                        "                            </span>\n" +
+                        "                        </div>\n" +
+                        "\n" +
+                        "                    </div>\n" +
+                        "                </div>\n" +
+                        " </div>"+
+                        "            </div>";
+                }
+                $("#items").html(html);
+                if (data.list.length == 0){
+                    $("#pageNavigation").hide()
+                    $("#noDeviceInfo").show()
+                    $("#loadingInfo").hide()
+                    return;
+                }else {
+                    $("#pageNavigation").show()
+                    $("#loadingInfo").hide()
+                    $("#noDeviceInfo").hide()
+                    $("#formSkipPage").show();
+                }
+                loadPageNavigation(data, page, rows, roomName, deviceTypeName, keyword);
+            })
+        }
+        function loadPage(page, rows, roomName, deviceTypeName, keyword){
+            clearInterval(myInterval);
+            // 加载tab
+            loadTab(page, rows, roomName, deviceTypeName, keyword);
+            loadTypeTab(page, rows, roomName, deviceTypeName, keyword);
+            // 加载数据
+            loadData(page, rows, roomName, deviceTypeName, keyword);
+            // 更新数据
+            // myInterval = setInterval(loadData, 10000, page, rows, roomName, deviceTypeName, keyword)
+            window.scrollTo(0,0);
+        }
+        $(function () {
+            loadPage(1, 10, "全部", "全部", "null")
+        })
+    </script>
+</head>
+<body>
+    <div id="header"></div>
+    <div style="margin-bottom: 20px" class="header">
+        <ul class="nav nav-tabs" id="navTab">
+            <!--<li role="presentation" class="active"><a href="#"><svg t="1643774805554" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5227" width="20" height="20"><path d="M452 837.03125H249.6875c-34.6875 0-62.90625-28.21875-62.90625-62.90625V391.8125c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v382.3125c0 6.75 5.53125 12.28125 12.28125 12.28125H452c13.96875 0 25.3125 11.34375 25.3125 25.3125s-11.34375 25.3125-25.3125 25.3125zM812.1875 537.125c-13.96875 0-25.3125-11.34375-25.3125-25.3125V397.625c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v114.1875c0 13.96875-11.34375 25.3125-25.3125 25.3125zM774.5 837.03125H572.09375c-13.96875 0-25.3125-11.34375-25.3125-25.3125s11.34375-25.3125 25.3125-25.3125H774.5c6.75 0 12.28125-5.53125 12.28125-12.28125v-82.21875c0-13.96875 11.34375-25.3125 25.3125-25.3125s25.3125 11.34375 25.3125 25.3125v82.21875c0.09375 34.6875-28.125 62.90625-62.90625 62.90625z" p-id="5228"></path><path d="M110.75 497c-7.40625 0-14.8125-3.28125-19.78125-9.5625-8.71875-10.96875-6.9375-26.8125 4.03125-35.53125l369.75-294.9375c13.21875-10.5 29.71875-16.3125 46.59375-16.3125h0.09375c16.875 0 33.46875 5.8125 46.6875 16.40625L902 432.5c10.875 8.71875 12.65625 24.65625 3.9375 35.625-8.71875 10.875-24.65625 12.65625-35.625 3.9375L526.34375 196.53125c-8.8125-7.125-21.1875-7.125-30.09375 0L126.5 491.46875c-4.59375 3.75-10.21875 5.53125-15.75 5.53125zM572.09375 837.03125c-1.5 0-2.90625-0.09375-4.3125-0.375-1.40625 0.28125-2.8125 0.375-4.3125 0.375H452c-13.96875 0-25.3125-11.34375-25.3125-25.3125V632.09375c0-47.0625 38.34375-85.40625 85.40625-85.40625 22.78125 0 44.25 8.90625 60.375 25.03125 16.125 16.125 25.03125 37.59375 25.03125 60.375v179.625c-0.09375 13.96875-11.4375 25.3125-25.40625 25.3125z m-94.78125-50.625h69.5625V632.09375c0-9.28125-3.65625-18-10.21875-24.5625S521.375 597.3125 512.09375 597.3125c-19.125 0-34.78125 15.5625-34.78125 34.78125v154.3125z" p-id="5229"></path></svg></a></li>
+            <li role="presentation"><a href="#">卧室</a></li>
+            <li role="presentation"><a href="#">厨房</a></li>-->
+        </ul>
+        <ul class="nav nav-tabs" id="typeSelectTab">
+            <!--<li role="presentation" class="active"><a href="#">报警设备</a></li>
+            <li role="presentation"><a href="#">灯光设备</a></li>
+            <li role="presentation"><a href="#">继电器</a></li>
+            <li role="presentation"><a href="#">摄像头设备</a></li>
+            <li role="presentation"><a href="#">传感器</a></li>
+            <li role="presentation"><a href="#">其他类型设备</a></li>-->
+        </ul>
+    </div>
+    <div class="body">
+        <div id="items" class="row" style="margin-left: 0px; margin-right: 0px;">
+            <!--<div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" >
+                <div class="thumbnail" style="padding: 0px;position:relative">
+                    &lt;!&ndash;                      视频缩略图&ndash;&gt;
+                    <div class="displayImg" style="background: url('img/deviceImg/IMG_20220202_134445.jpg') no-repeat center;
+                                        background-size: cover; height: 200px"></div>
+                    <div class="caption">
+                        <p style="text-align: left;height:40px;overflow: hidden">
+                            remarks(deviceName)
+                            <br>
+                            <span style="color: #acc277">当前数据：<b>20摄氏度</b></span>
+                        </p>
+                        <div style="height: 30px">
+                            <span style="text-align: left;margin-top:8px;float:left;font-size: 14px;color: #a0a0a0">
+                                <img width="15px" src="icon/房间.png">
+                                卧室 | 传感器 | 2022-01-28 22:28:38
+                            </span>
+                            &lt;!&ndash; 下拉菜单 &ndash;&gt;
+                            <span class="btn-group" style="float:right;text-align: left;margin-right: 20px">
+                                    <a type="button"  class="btn  dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img width="22px" src="icon/菜单.png">
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#">设备信息详情</a></li>
+                                        <li><a href="#">查询历史数据</a></li>
+                                        <li><a href="#">修改deviceName</a></li>
+                                        <li><a href="#">修改设备标注</a></li>
+                                        <li><a href="#">修改设备所在房间</a></li>
+                                        <li><a href="#">设置该传感器触发事件</a></li>
+                                        <li><a href="#">删除该设备</a></li>
+                                    </ul>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>-->
+<!--            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" >
+                <div class="thumbnail" style="padding: 0px;position:relative">
+                    &lt;!&ndash;                      视频缩略图&ndash;&gt;
+                    <div class="displayImg" style="background: url('img/deviceImg/IMG_20220202_134445.jpg') no-repeat center;
+                                        background-size: cover; height: 200px"></div>
+                    <div class="caption">
+                        <p style="text-align: left;height:40px;overflow: hidden">
+                            remarks(deviceName)
+                            <span style="float: right; margin-right:20px">
+                                <input class="tgl tgl-ios" id="cb2" type="checkbox"/>
+                                <label class="tgl-btn" for="cb2"></label>
+                            </span>
+                            <br>
+                            <span style="color: #acc277">当前状态：<b>开</b></span>
+
+                        </p>
+                        <div style="height: 30px">
+                            <span style="text-align: left;margin-top:8px;float:left;font-size: 14px;color: #a0a0a0">
+                                <img width="15px" src="icon/房间.png">
+                                卧室 | 报警器 | 2022-01-28 22:28:38
+                            </span>
+                            &lt;!&ndash; 下拉菜单 &ndash;&gt;
+                            <span class="btn-group" style="float:right;text-align: left;margin-right: 20px">
+                                    <a type="button"  class="btn  dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img width="22px" src="icon/菜单.png">
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#">设备信息详情</a></li>
+                                        <li><a href="#">修改deviceName</a></li>
+                                        <li><a href="#">修改设备标注</a></li>
+                                        <li><a href="#">修改设备所在房间</a></li>
+                                        <li><a href="#">删除该设备</a></li>
+                                    </ul>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" >
+                <div class="thumbnail" style="padding: 0px;position:relative">
+                    &lt;!&ndash;                      视频缩略图&ndash;&gt;
+                    <div class="displayImg" style="background: url('img/deviceImg/IMG_20220202_134445.jpg') no-repeat center;
+                                        background-size: cover; height: 200px"></div>
+                    <div class="caption">
+                        <p style="text-align: left;height:40px;overflow: hidden">
+                            remarks(deviceName)
+                            <span style="float: right; margin-right:10px">
+                                <select style="color: #83c4bf" class="form-control">
+                                  <option>RGB绿灯</option>
+                                  <option>RGB绿灯</option>
+                                  <option>RGB绿灯</option>
+                                  <option>RGB绿灯</option>
+                                  <option>RGB绿灯</option>
+                                </select>
+                            </span>
+                            <br>
+                            <span style="color: #acc277">当前状态：<b>开</b></span>
+
+                        </p>
+                        <div style="height: 30px">
+                            <span style="text-align: left;margin-top:8px;float:left;font-size: 14px;color: #a0a0a0">
+                                <img width="15px" src="icon/房间.png">
+                                卧室 | 报警器 | 2022-01-28 22:28:38
+                            </span>
+                            &lt;!&ndash; 下拉菜单 &ndash;&gt;
+                            <span class="btn-group" style="float:right;text-align: left;margin-right: 20px">
+                                    <a type="button"  class="btn  dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img width="22px" src="icon/菜单.png">
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#">设备信息详情</a></li>
+                                        <li><a href="#">修改deviceName</a></li>
+                                        <li><a href="#">修改设备标注</a></li>
+                                        <li><a href="#">修改设备所在房间</a></li>
+                                        <li><a href="#">删除该设备</a></li>
+                                    </ul>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>-->
+        </div>
+    </div>
+    <div id="remindInfo" style="display: none">
+        <div style="text-align: center; font-size: 15px" id="loadingInfo">
+            <svg t="1645272595851" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2883" width="20" height="20"><path d="M964.388184 477.340047a72.848985 72.848985 0 0 1 22.16189 53.612757c0 20.991625-7.387297 38.691881-22.16189 53.612757a72.044428 72.044428 0 0 1-53.466474 22.16189c-20.845342 0-38.618739-7.460438-53.612757-22.16189a72.848985 72.848985 0 0 1-22.16189-53.612757c0-20.991625 7.387297-38.691881 22.16189-53.612757a72.848985 72.848985 0 0 1 53.612757-22.161889c20.7722 0 38.765022 7.460438 53.466474 22.161889m-99.911359 348.885199a73.141551 73.141551 0 0 1-22.527598 53.393332 72.995268 72.995268 0 0 1-53.393332 22.527598c-20.991625 0-38.618739-7.460438-53.612757-22.16189a72.848985 72.848985 0 0 1-22.16189-53.612757c0-20.991625 7.460438-38.618739 22.16189-53.612757a72.848985 72.848985 0 0 1 53.612757-22.16189c20.991625 0 38.691881 7.460438 53.612757 22.16189a72.410136 72.410136 0 0 1 22.308173 53.466474m56.904127-590.179175c0 36.717059-13.019196 68.094784-39.13073 93.913751a128.070856 128.070856 0 0 1-93.621185 38.691881c-36.643917 0-68.021642-12.946055-93.913752-38.691881a127.924573 127.924573 0 0 1-38.618739-93.913751c0-36.351351 12.946055-67.582793 38.618739-93.621186a127.924573 127.924573 0 0 1 93.986893-39.13073c36.351351 0 67.582793 13.092338 93.548044 39.203872 26.111534 25.818968 39.13073 57.05041 39.13073 93.548044m-374.192175 658.566525a72.848985 72.848985 0 0 1 22.088748 53.612757c0 20.991625-7.387297 38.691881-22.088748 53.612757a72.848985 72.848985 0 0 1-53.685899 22.16189c-20.991625 0-38.618739-7.460438-53.612757-22.16189a72.410136 72.410136 0 0 1-22.16189-53.612757c0-20.991625 7.460438-38.618739 22.16189-53.612757a72.848985 72.848985 0 0 1 53.612757-22.16189c20.991625 0 38.765022 7.460438 53.685899 22.16189M574.251151 33.151408c22.088748 22.16189 33.206264 48.931698 33.206264 80.675131 0 31.743433-11.117516 58.366958-33.206264 80.601989a109.566043 109.566043 0 0 1-80.60199 33.133123c-31.743433 0-58.366958-11.117516-80.601989-33.133123a109.346619 109.346619 0 0 1-33.206264-80.601989c0-31.743433 11.190657-58.366958 33.206264-80.675131A109.785468 109.785468 0 0 1 493.57602 0.018285c31.59715 0 58.366958 11.117516 80.601989 33.133123M252.208901 772.612489a72.848985 72.848985 0 0 1 22.088749 53.612757c0 20.991625-7.387297 38.691881-22.088749 53.685898a72.848985 72.848985 0 0 1-53.685898 22.088749 73.141551 73.141551 0 0 1-53.393332-22.527598 72.995268 72.995268 0 0 1-22.454457-53.393332c0-20.991625 7.387297-38.618739 22.088749-53.612757a72.848985 72.848985 0 0 1 53.685898-22.088748c20.991625 0 38.911305 7.387297 53.75904 22.235031M265.37438 168.975268c18.577954 18.577954 27.866931 40.959269 27.866931 66.92452 0 26.038392-9.288977 48.273424-27.866931 66.99766-18.577954 18.651096-40.959269 28.013214-66.99766 28.013214-25.965251 0-48.273424-9.215835-66.924519-27.940072a91.134373 91.134373 0 0 1-27.866931-66.924519c0-25.965251 9.215835-48.273424 27.866931-66.92452 18.724237-18.724237 40.959269-27.940072 66.924519-27.940072 26.038392 0 48.273424 9.215835 66.99766 27.793789M129.98937 477.340047a72.848985 72.848985 0 0 1 22.161889 53.612757c0 20.991625-7.460438 38.691881-22.161889 53.612757a72.190711 72.190711 0 0 1-53.612757 22.16189c-20.991625 0-38.691881-7.460438-53.612757-22.16189A72.190711 72.190711 0 0 1 0.601966 531.025946c0-20.991625 7.460438-38.691881 22.16189-53.612757a72.848985 72.848985 0 0 1 53.612757-22.16189c20.991625 0 38.765022 7.460438 53.612757 22.16189" p-id="2884"></path></svg>
+            加载中. . .
+        </div>
+        <div style="text-align: center; font-size: 15px" id="noDeviceInfo">
+            没找到任何设备. . .
+            <a href="/deviceManage.html?page=deviceManage">
+                点击添加！
+            </a>
+            <br>
+            <a href="/quickGetStart.html?page=quickGetStart">查看操作流程</a>
+        </div>
+    </div>
+    <!-- 页码 -->
+    <div style="text-align: center" id="pageNavigation">
+        <nav aria-label="Page navigation">
+            <ul class="pagination" id="pagination">
+            </ul>
+            <div id="formSkipPage">
+                <div style="width: 108px;margin: auto;margin-bottom: 80px;margin-top: 10px">
+                    <div class="input-group">
+                        <input type="number" id="textSkipPage" name="currentPage" class="form-control" placeholder="页码">
+                        <span class="input-group-btn">
+                            <button onclick="pageSkip()" id="butSkipPage" style="color: #337ab7" class="btn btn-default" type="button">跳转</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div id="footer"></div>
+</body>
+</html>

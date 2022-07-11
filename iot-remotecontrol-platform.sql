@@ -2,7 +2,8 @@
 SQLyog Ultimate v12.09 (64 bit)
 MySQL - 5.7.27-log : Database - smarthomesystemdatabase
 *********************************************************************
-*/
+*/
+
 
 /*!40101 SET NAMES utf8 */;
 
@@ -49,9 +50,9 @@ insert  into `device`(`id`,`deviceName`,`remarks`,`switchState`,`roomId`,`device
 
 /*Table structure for table `devicetype` */
 
-DROP TABLE IF EXISTS `devicetype`;
+DROP TABLE IF EXISTS `deviceType`;
 
-CREATE TABLE `devicetype` (
+CREATE TABLE `deviceType` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `typeName` varchar(20) DEFAULT NULL COMMENT '类型名',
   `describe` varchar(30) DEFAULT NULL COMMENT '描述',
@@ -61,7 +62,7 @@ CREATE TABLE `devicetype` (
 
 /*Data for the table `devicetype` */
 
-insert  into `devicetype`(`id`,`typeName`,`describe`) values (1,'alarm','报警设备'),(2,'light','灯光设备'),(3,'relay','继电器'),(4,'camera','摄像头设备'),(5,'sensor','传感器'),(6,'other','其他类型设备');
+insert  into `deviceType`(`id`,`typeName`,`describe`) values (1,'alarm','报警设备'),(2,'light','灯光设备'),(3,'relay','继电器'),(4,'camera','摄像头设备'),(5,'sensor','传感器'),(6,'other','其他类型设备');
 
 /*Table structure for table `event` */
 
